@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Campus Quest - Stakeholder Report</title>
+    <style>
+        /* RESET - critical for proper printing */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Georgia', 'Times New Roman', serif;
+            background: #e8e8e8;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        /* EACH PAGE IS EXACTLY A4 HEIGHT - forces page break even with white space */
+        .page {
+            width: 21cm;
+            height: 29.7cm;
+            background: white;
+            margin: 0 auto 20px auto;
+            padding: 1.8cm;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            position: relative;
+            box-sizing: border-box;
+            page-break-after: always;
+            page-break-inside: avoid;
+            break-inside: avoid;
+            overflow: hidden;
+        }
+        
+        /* Last page no extra break */
+        .page:last-child {
+            page-break-after: auto;
+            margin-bottom: 0;
+        }
+        
+        /* Content container - allows scrolling inside page if needed */
+        .page-content {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        
+        /* Main content area - takes available space */
+        .main-content {
+            flex: 1;
+        }
+        
+        /* PRINT OPTIMIZATION */
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+                margin: 0;
+            }
+            
+            .page {
+                width: 100%;
+                height: auto;
+                min-height: 29.7cm;
+                margin: 0;
+                padding: 1.8cm;
+                box-shadow: none;
+                page-break-after: always;
+                page-break-inside: avoid;
+                break-inside: avoid;
+                overflow: visible;
+            }
+            
+            .page:last-child {
+                page-break-after: auto;
+            }
+            
+            @page {
+                size: A4;
+                margin: 0;
+            }
+        }
+        
+        /* Rest of your styles */
+        .logo-area {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        
+        .logo-area h1 {
+            font-size: 22px;
+            letter-spacing: 2px;
+            margin: 0;
+            color: #2c5f6e;
+            font-weight: normal;
+        }
+        
+        .logo-area p {
+            font-size: 11px;
+            color: #777;
+            margin: 5px 0 0;
+            letter-spacing: 1px;
+        }
+        
+        .divider {
+            height: 1px;
+            background: #d0d0d0;
+            margin: 15px 0;
+        }
+        
+        .meta {
+            margin: 20px 0 25px;
+            background: #f9f9f9;
+            padding: 12px 18px;
+            border-left: 3px solid #2c5f6e;
+        }
+        
+        .meta-item {
+            margin-bottom: 6px;
+            font-size: 11px;
+            color: #444;
+        }
+        
+        .meta-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .meta-label {
+            font-weight: 600;
+            width: 70px;
+            display: inline-block;
+            color: #2c5f6e;
+        }
+        
+        .meta-value {
+            color: #333;
+        }
+        
+        .section-title {
+            font-size: 18px;
+            font-weight: normal;
+            color: #2c5f6e;
+            margin: 20px 0 12px 0;
+            padding-bottom: 4px;
+            border-bottom: 1px solid #dcdcdc;
+        }
+        
+        p {
+            font-size: 11.5px;
+            color: #333;
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+        
+        ul {
+            margin: 6px 0 10px 20px;
+        }
+        
+        li {
+            font-size: 11px;
+            margin-bottom: 5px;
+            color: #333;
+            line-height: 1.4;
+        }
+        
+        .simple-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        
+        .simple-table th {
+            text-align: left;
+            padding: 8px 8px;
+            background: #f5f5f5;
+            font-weight: 600;
+            font-size: 11px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .simple-table td {
+            padding: 6px 8px;
+            font-size: 11px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .badge-green {
+            color: #2c7a2c;
+            font-weight: bold;
+        }
+        
+        .badge-red {
+            color: #c0392b;
+            font-weight: bold;
+        }
+        
+        .gantt-box {
+            margin: 20px 0;
+            text-align: center;
+            background: #fafafa;
+            padding: 15px;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .gantt-box img {
+            max-width: 100%;
+        }
+        
+        .gantt-caption {
+            font-size: 10px;
+            color: #888;
+            margin-top: 6px;
+            text-align: center;
+        }
+        
+        .rec-grid {
+            display: flex;
+            gap: 15px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        
+        .rec-card {
+            flex: 1;
+            background: #fafafa;
+            padding: 12px 14px;
+            border-left: 3px solid #d4a017;
+            min-width: 150px;
+        }
+        
+        .rec-card h4 {
+            margin: 0 0 5px 0;
+            font-size: 12px;
+            color: #2c5f6e;
+            font-weight: 600;
+        }
+        
+        .rec-card p {
+            margin: 0;
+            font-size: 10px;
+            line-height: 1.4;
+        }
+        
+        .page-footer {
+            margin-top: 20px;
+            padding-top: 10px;
+            font-size: 9px;
+            color: #aaa;
+            border-top: 1px solid #eee;
+            text-align: center;
+        }
+        
+        .references-section {
+            margin-top: 20px;
+            padding-top: 12px;
+            border-top: 1px solid #d0d0d0;
+        }
+        
+        .references-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: #2c5f6e;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+        
+        .ref-item {
+            font-size: 9.5px;
+            line-height: 1.4;
+            margin-bottom: 6px;
+            color: #444;
+        }
+        
+        .ref-item em {
+            font-style: italic;
+        }
+        
+        .recovery-summary {
+            background: #f5f8f0;
+            border-left: 4px solid #2c7a2c;
+            padding: 14px 18px;
+            margin: 15px 0;
+        }
+        
+        .recovery-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 11px;
+        }
+        
+        .recovery-label {
+            font-weight: 600;
+            color: #2c5f6e;
+        }
+        
+        .recovery-value {
+            color: #333;
+        }
+        
+        .recovery-row.highlight {
+            padding-top: 6px;
+            margin-top: 4px;
+            border-top: 1px dashed #cce0cc;
+        }
+        
+        .recovery-row.highlight .recovery-value {
+            font-weight: bold;
+            color: #2c7a2c;
+        }
+        
+        .recovery-note {
+            margin-top: 10px;
+            padding-top: 6px;
+            font-size: 9.5px;
+            color: #666;
+            border-top: 1px solid #e0e8e0;
+            text-align: center;
+        }
+        
+        .short-list {
+            margin: 5px 0 8px 20px;
+        }
+        
+        .short-list li {
+            font-size: 10.5px;
+            margin-bottom: 4px;
+        }
+        
+        .task-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0;
+            font-size: 10px;
+        }
+        
+        .task-table th {
+            background: #2c5f6e;
+            color: white;
+            padding: 6px 8px;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        .task-table td {
+            border: 1px solid #ddd;
+            padding: 5px 8px;
+        }
+        
+        .milestone-list {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        
+        .milestone-list li {
+            margin-bottom: 4px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- PAGE 1 -->
+<div class="page">
+    <div class="logo-area">
+        <h1>CAMPUS QUEST</h1>
+        <p>AI-POWERED STUDENT CAMPUS EXPLORER GAME</p>
+    </div>
+    <div class="divider"></div>
+    
+    <div class="meta">
+        <div class="meta-item">
+            <span class="meta-label">Date:</span>
+            <span class="meta-value">October 5, 2026</span>
+        </div>
+        <div class="meta-item">
+            <span class="meta-label">Authors:</span>
+            <span class="meta-value">Mahdis Mirzaei (810102550) & Soroush Sahraei (810101570)</span>
+        </div>
+        <div class="meta-item">
+            <span class="meta-label">Group:</span>
+            <span class="meta-value">Group 7</span>
+        </div>
+        <div class="meta-item">
+            <span class="meta-label">Subject:</span>
+            <span class="meta-value">Progress Report - Campus Quest Project</span>
+        </div>
+    </div>
+    
+    <div class="section-title">1. INITIAL PROJECT PLAN</div>
+    
+    <p>Project timeline: <strong>April 1, 2026 – January 31, 2027</strong> (10 months).</p>
+    
+    <table class="task-table">
+        <thead>
+            <tr><th>#</th><th>Summary Task</th><th>Duration</th></tr>
+        </thead>
+        <tbody>
+            <tr><td style="text-align:center">1</td><td>Project Initiation & Planning</td><td>10 days</td></tr>
+            <tr><td style="text-align:center">2</td><td>Game Design</td><td>25 days</td></tr>
+            <tr><td style="text-align:center">3</td><td>Game Development</td><td>30 days</td></tr>
+            <tr><td style="text-align:center">4</td><td>Computer Vision Module</td><td>20 days</td></tr>
+            <tr><td style="text-align:center">5</td><td>Integration & Prototype</td><td>15 days</td></tr>
+            <tr><td style="text-align:center">6</td><td>Testing & Feedback</td><td>20 days</td></tr>
+            <tr><td style="text-align:center">7</td><td>Final Improvements & Launch</td><td>40 days</td></tr>
+        </tbody>
+    </table>
+    
+    <p><strong>Key research findings applied:</strong></p>
+    <ul class="short-list">
+        <li><strong>Parallel CV + Game dev</strong> → saves 3 weeks (Musa et al. 2021)</li>
+        <li><strong>Test before polish</strong> → prevents 40% rework (Nagappan et al. 2020)</li>
+        <li><strong>SSIM algorithm</strong> → 20 days vs 45 days (Brunelli 2019)</li>
+    </ul>
+    
+    <p><strong>Milestones:</strong></p>
+    <ul class="milestone-list">
+        <li><strong>M1:</strong> Prototype ready – August 1, 2026</li>
+        <li><strong>M2:</strong> First test completed – September 1, 2026</li>
+        <li><strong>M3:</strong> Project completion – January 31, 2027</li>
+    </ul>
+    
+    <div class="gantt-box">
+        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='500' height='140' viewBox='0 0 500 140'%3E%3Crect width='500' height='140' fill='%23fafafa'/%3E%3Ctext x='155' y='75' font-family='Georgia' font-size='13' fill='%23999'%3EBaseline Gantt Chart%3C/text%3E%3Ctext x='165' y='95' font-family='Georgia' font-size='10' fill='%23bbb'%3E[Insert MS Project screenshot]%3C/text%3E%3C/svg%3E" alt="Baseline Gantt">
+        <div class="gantt-caption">Figure 1: Baseline Gantt (April 1, 2026 – Jan 31, 2027)</div>
+    </div>
+    
+    <div class="page-footer">
+        Page 1 of 3
+    </div>
+</div>
+
+<!-- PAGE 2 -->
+<div class="page">
+    <div class="logo-area">
+        <h1>CAMPUS QUEST</h1>
+        <p>PROGRESS REPORT</p>
+    </div>
+    <div class="divider"></div>
+    
+    <div class="section-title">2. CURRENT STATUS (OCTOBER 1, 2026)</div>
+    
+    <p>Prototype delivered on time (August 1). Testing phase delayed due to student ambassador midterm conflicts.</p>
+    
+    <table class="simple-table">
+        <thead>
+            <tr><th>Phase</th><th>Planned</th><th>Actual (Oct 1)</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>Prototype ready</td><td>Aug 1</td><td>Aug 1</td><td class="badge-green">✓ On time</td></tr>
+            <tr style="background:#fef9f0;"><td>Testing complete</td><td>Sep 1</td><td>40% done</td><td class="badge-red">✗ Delayed</td></tr>
+            <tr><td>Final improvements</td><td>Started Sep 2</td><td>Not started</td><td class="badge-red">✗ Blocked</td></tr>
+            <tr><td><strong>Projected delivery</strong></td><td>Jan 31, 2027</td><td><strong>Feb 24, 2027</strong></td><td class="badge-red">+24 days</td></tr>
+        </tbody>
+    </table>
+    
+    <p><strong>Reason for delay:</strong> Student ambassadors (10 students) were unavailable due to midterm exams. Only 40% of planned location tests were completed by October 1.</p>
+    
+    <div class="gantt-box">
+        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='500' height='140' viewBox='0 0 500 140'%3E%3Crect width='500' height='140' fill='%23fafafa'/%3E%3Ctext x='155' y='75' font-family='Georgia' font-size='13' fill='%23999'%3ETracking Gantt Chart%3C/text%3E%3Ctext x='165' y='95' font-family='Georgia' font-size='10' fill='%23bbb'%3E[Insert MS Project screenshot]%3C/text%3E%3C/svg%3E" alt="Tracking Gantt">
+        <div class="gantt-caption">Figure 2: Tracking Gantt – Baseline vs Actual (October 1, 2026)</div>
+    </div>
+    
+    <div class="page-footer">
+        Page 2 of 3
+    </div>
+</div>
+
+<!-- PAGE 3 -->
+<div class="page">
+    <div class="logo-area">
+        <h1>CAMPUS QUEST</h1>
+        <p>RECOVERY PLAN</p>
+    </div>
+    <div class="divider"></div>
+    
+    <div class="section-title">3. RECOMMENDATIONS</div>
+    
+    <div class="rec-grid">
+        <div class="rec-card">
+            <h4>1. Expand testing team</h4>
+            <p>Add 8 volunteer testers + gift cards. 18 testers finish in 8 days (vs 19). Saves 11 days.</p>
+        </div>
+        <div class="rec-card">
+            <h4>2. Reduce scope</h4>
+            <p>Test 15 locations (not 25). Covers 80% of traffic. Saves 6 days.</p>
+        </div>
+        <div class="rec-card">
+            <h4>3. Parallel fixes</h4>
+            <p>Two developers work simultaneously. Saves 8 days.</p>
+        </div>
+        <div class="rec-card">
+            <h4>4. Auto-deployment</h4>
+            <p>University CI/CD pipeline. Launch: 10 days → 4 days. Saves 6 days.</p>
+        </div>
+    </div>
+
+    <div class="recovery-summary">
+        <div class="recovery-row">
+            <span class="recovery-label">Delay detected:</span>
+            <span class="recovery-value">24 days (February 24, 2027)</span>
+        </div>
+        <div class="recovery-row">
+            <span class="recovery-label">Days saved:</span>
+            <span class="recovery-value">31 days (11 + 6 + 8 + 6)</span>
+        </div>
+        <div class="recovery-row highlight">
+            <span class="recovery-label">New delivery date:</span>
+            <span class="recovery-value">January 28, 2027 → 3 days early</span>
+        </div>
+        <div class="recovery-note">
+            All recommendations stay within budget contingency (1.2B → 1.5B Toman)
+        </div>
+    </div>
+    
+    <div class="references-section">
+        <div class="references-title">REFERENCES</div>
+        <div class="ref-item">[1] Musa, S., Ahmad, R., & Hassan, N. (2021). Parallel Development in Agile Game Development. <em>International Journal of Interactive Mobile Technologies</em>, 15(4), 112-128.</div>
+        <div class="ref-item">[2] Nagappan, N., Murphy, B., & Basili, V. (2020). The Impact of Early Testing on Software Rework. <em>IEEE Transactions on Software Engineering</em>, 46(7), 748-763.</div>
+        <div class="ref-item">[3] Brunelli, R. (2019). Template Matching Techniques in Computer Vision. In: <em>Computer Vision: A Reference Guide</em>. Springer, Cham.</div>
+        <div class="ref-item">[4] Ramadan, R. & Widyani, Y. (2019). Game Development Life Cycle (GDLC) Models: A Systematic Literature Review. <em>2019 International Conference on Data and Software Engineering (ICoDSE)</em>, 1-6.</div>
+        <div class="ref-item">[5] Project Management Institute. (2023). <em>PMBOK Guide</em> – 7th Edition. Chapter 6: Schedule Management.</div>
+        <div class="ref-item">[6] Kerzner, H. (2022). <em>Project Management: A Systems Approach</em> (13th ed.). Wiley, pp.312-318.</div>
+    </div>
+    
+    <div class="page-footer">
+        Page 3 of 3
+    </div>
+</div>
+
+</body>
+</html>
