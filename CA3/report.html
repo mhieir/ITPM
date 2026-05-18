@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>گزارش مدیریت Slack در پروژه — اپلیکیشن ورزش روزانه</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* ---------- Reset & base ---------- */
+  * { margin:0; padding:0; box-sizing:border-box; }
+  :root{
+    --ink:#1a2332;
+    --ink-soft:#3a4655;
+    --muted:#7a8593;
+    --line:#e3dccb;
+    --line-soft:#efeadd;
+    --paper:#fbf7ee;
+    --card:#ffffff;
+    --teal:#1e6b5c;
+    --teal-soft:#e5efec;
+    --terra:#c2603e;
+    --terra-soft:#f7e6df;
+    --gold:#b8924a;
+    --critical:#b8392a;
+    --critical-soft:#f8e1dc;
+    --slack:#d4a857;
+    --slack-soft:#fbf2dc;
+  }
+  html,body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Vazirmatn','Segoe UI',sans-serif;
+    font-size:10pt;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  body{ padding:24px 12px; }
+
+  /* ---------- Page (A4) ---------- */
+  .page{
+    width:21cm; height:29.7cm;
+    background:var(--card);
+    margin:0 auto 24px;
+    padding:0.9cm 1.1cm 0.9cm;
+    box-shadow:0 6px 30px rgba(26,35,50,.08);
+    position:relative;
+    page-break-after:always;
+    overflow:hidden;
+  }
+  .page:last-child{ page-break-after:auto; margin-bottom:0; }
+
+  /* decorative side bar */
+  .page::before{
+    content:""; position:absolute; right:0; top:0; bottom:0;
+    width:6px; background:linear-gradient(180deg,var(--teal) 0%,var(--terra) 100%);
+  }
+
+  /* ---------- Print ---------- */
+  @media print{
+    @page{ size:A4; margin:0; }
+    body{ background:#fff; padding:0; }
+    .page{ box-shadow:none; margin:0; width:100%; height:29.7cm; }
+  }
+
+  /* ---------- Typography ---------- */
+  h1,h2,h3,h4{ font-family:'Vazirmatn',sans-serif; color:var(--ink); }
+  .eyebrow{
+    font-size:8.5pt; letter-spacing:.18em; color:var(--terra);
+    font-weight:700; text-transform:uppercase;
+  }
+  h1.title{
+    font-size:22pt; font-weight:800; line-height:1.2;
+    margin:4px 0 4px;
+  }
+  h1.title em{ font-style:normal; color:var(--teal); }
+  h2.section{
+    font-size:14pt; font-weight:700;
+    margin:12px 0 6px;
+    padding-bottom:4px;
+    border-bottom:2px solid var(--ink);
+    display:flex; align-items:baseline; gap:10px;
+  }
+  h2.section .num{
+    font-family:'JetBrains Mono',monospace;
+    color:var(--terra);
+    font-size:12pt;
+  }
+  h3.sub{
+    font-size:11pt; font-weight:600; color:var(--teal);
+    margin:10px 0 4px;
+  }
+  p{ margin:4px 0; color:var(--ink-soft); text-align:justify; }
+  p.lead{ font-size:10.5pt; color:var(--ink); }
+
+  /* ---------- Cover head ---------- */
+  .cover{
+    border:1px solid var(--line);
+    border-radius:4px;
+    padding:12px 18px;
+    background:linear-gradient(135deg,#fbf7ee 0%,#fff 100%);
+    margin-bottom:8px;
+  }
+  .cover-grid{
+    display:grid; grid-template-columns:1fr 1fr;
+    gap:4px 18px; margin-top:8px;
+    font-size:9pt;
+  }
+  .cover-grid .k{
+    color:var(--muted); font-weight:500;
+    letter-spacing:.04em;
+  }
+  .cover-grid .v{
+    color:var(--ink); font-weight:600;
+  }
+  .badge{
+    display:inline-block;
+    background:var(--teal-soft); color:var(--teal);
+    padding:2px 9px; border-radius:99px;
+    font-size:8.5pt; font-weight:600;
+    margin-left:6px;
+  }
+
+  /* ---------- Tables ---------- */
+  table.data{
+    width:100%; border-collapse:collapse;
+    font-size:8.8pt; margin:4px 0 2px;
+  }
+  table.data th{
+    background:var(--ink); color:#fff;
+    padding:5px 6px; font-weight:600;
+    text-align:center; font-size:8.5pt;
+    border:1px solid var(--ink);
+  }
+  table.data td{
+    border:1px solid var(--line);
+    padding:3.5px 6px; text-align:center;
+    color:var(--ink);
+  }
+  table.data tr:nth-child(even) td{ background:#fbfaf5; }
+  table.data td.left{ text-align:right; }
+  table.data .crit{ background:var(--critical-soft) !important; color:var(--critical); font-weight:700; }
+  table.data .slk{ background:var(--slack-soft) !important; color:#7a5a1c; font-weight:600; }
+
+  /* ---------- Callouts ---------- */
+  .callout{
+    border-right:3px solid var(--teal);
+    background:var(--teal-soft);
+    padding:6px 12px;
+    border-radius:0 4px 4px 0;
+    margin:6px 0;
+    font-size:9pt;
+  }
+  .callout.terra{ border-right-color:var(--terra); background:var(--terra-soft); }
+  .callout.warn{ border-right-color:var(--critical); background:var(--critical-soft); }
+  .callout strong{ color:var(--ink); }
+
+  /* ---------- Formula box ---------- */
+  .formula{
+    display:inline-block;
+    background:#fbfaf5; border:1px solid var(--line);
+    padding:6px 12px; border-radius:3px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:9.5pt; color:var(--ink);
+    margin:4px 4px 4px 0;
+    direction:ltr;
+  }
+
+  /* ---------- Legend ---------- */
+  .legend{
+    display:flex; gap:14px; flex-wrap:wrap;
+    margin:8px 0; font-size:9pt;
+  }
+  .legend .item{ display:flex; align-items:center; gap:6px; }
+  .legend .sw{ width:12px; height:12px; border-radius:2px; }
+  .sw.crit{ background:var(--critical); }
+  .sw.norm{ background:var(--teal); }
+  .sw.slk{ background:var(--slack); }
+
+  /* ---------- PDM Diagram ---------- */
+  .pdm-wrap{
+    border:1px solid var(--line);
+    border-radius:4px;
+    padding:10px;
+    background:#fdfcf7;
+    margin:10px 0;
+    overflow:hidden;
+  }
+  .pdm-svg{ width:100%; height:auto; display:block; }
+  .pdm-key{
+    display:flex; gap:18px; align-items:center;
+    font-size:8.5pt; color:var(--muted);
+    margin-top:6px; flex-wrap:wrap;
+    direction:ltr;
+  }
+
+  /* ---------- Two col ---------- */
+  .two-col{
+    display:grid; grid-template-columns:1fr 1fr; gap:14px;
+    margin:10px 0;
+  }
+
+  /* ---------- Footer ---------- */
+  .pfoot{
+    position:absolute; bottom:0.6cm; left:1.2cm; right:1.2cm;
+    display:flex; justify-content:space-between;
+    font-size:8pt; color:var(--muted);
+    border-top:1px solid var(--line-soft); padding-top:4px;
+  }
+  .pfoot .right{ color:var(--terra); font-weight:600; }
+
+  /* ---------- Mini cards ---------- */
+  .stat-row{
+    display:grid; grid-template-columns:repeat(4,1fr);
+    gap:8px; margin:6px 0;
+  }
+  .stat{
+    border:1px solid var(--line);
+    padding:6px 10px; border-radius:4px;
+    background:#fff;
+  }
+  .stat .lbl{ font-size:7.5pt; color:var(--muted); letter-spacing:.04em; }
+  .stat .val{ font-size:14pt; font-weight:800; color:var(--ink); line-height:1.1; margin-top:1px; }
+  .stat .sub{ font-size:8pt; color:var(--teal); margin-top:1px; }
+  .stat.accent .val{ color:var(--terra); }
+  .stat.crit .val{ color:var(--critical); }
+
+  /* ---------- Procedural step list ---------- */
+  ol.steps{ counter-reset:step; list-style:none; padding:0; margin:8px 0; }
+  ol.steps li{
+    counter-increment:step;
+    padding:3px 30px 3px 6px;
+    position:relative; margin-bottom:4px;
+    font-size:9pt;
+  }
+  ol.steps li::before{
+    content:counter(step);
+    position:absolute; right:0; top:3px;
+    width:20px; height:20px; border-radius:50%;
+    background:var(--terra); color:#fff;
+    display:flex; align-items:center; justify-content:center;
+    font-weight:700; font-size:9pt;
+    font-family:'JetBrains Mono',monospace;
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ PAGE 1 — COVER + TASK 1 INTRO ============ -->
+<section class="page">
+  <div class="cover">
+    <div class="eyebrow">stakeholder report · گزارش پروژه</div>
+    <h1 class="title">مدیریت <em>Slack</em> در پروژه اپلیکیشن ورزش روزانه</h1>
+    <p style="font-size:9pt;color:var(--ink-soft);margin-top:2px;">
+      تحلیل زمان‌بندی، شناسایی مسیر بحرانی و محاسبه شناوری فعالیت‌ها با روش
+      <span style="font-family:'JetBrains Mono',monospace;direction:ltr;display:inline-block">PDM</span>
+    </p>
+    <div class="cover-grid">
+      <div><span class="k">پروژه:</span> <span class="v">Daily Sports App</span></div>
+      <div><span class="k">مشتری:</span> <span class="v">شرکت توسعه‌دهنده اپلیکیشن‌های موبایل</span></div>
+      <div><span class="k">شروع زودترین:</span> <span class="v">1 آوریل 2026</span></div>
+      <div><span class="k">مهلت پایان:</span> <span class="v">31 ژانویه 2027</span></div>
+      <div><span class="k">گروه:</span> <span class="v">گروه 7 — صحرایی، میرزایی</span></div>
+      <div><span class="k">دانشکده:</span> <span class="v">برق و کامپیوتر، دانشگاه تهران</span></div>
+    </div>
+  </div>
+
+  <h2 class="section"><span class="num">3.1</span> پیش‌زمینه و خلاصه مدیریتی</h2>
+  <p class="lead">
+    یک شرکت خارجی توسعه‌دهنده اپلیکیشن‌های موبایل قصد دارد یک اپلیکیشن آموزش و مدیریت ورزش روزانه را توسعه دهد و منتشر کند.
+    این پروژه شامل ۹ فعالیت اصلی است که در بازه‌ای حدود ۱۰ ماهه باید به انجام برسد.
+    در این گزارش، با استفاده از روش <span class="formula">PDM</span>، شبکه فعالیت‌ها رسم شده و مقادیر
+    <span class="formula">ES · EF · LS · LF · TS · FS</span>
+    برای تک‌تک فعالیت‌ها به‌صورت دستی محاسبه می‌گردد. در ادامه، همین محاسبات با خروجی نرم‌افزار
+    <span class="formula">MS Project</span> مقایسه می‌شود.
+  </p>
+
+  <div class="stat-row">
+    <div class="stat"><div class="lbl">تعداد فعالیت‌ها</div><div class="val">9</div><div class="sub">شامل یک Milestone پایانی</div></div>
+    <div class="stat accent"><div class="lbl">طول مسیر بحرانی</div><div class="val">9 ماه</div><div class="sub">از 9 ماه پنجره مفید</div></div>
+    <div class="stat crit"><div class="lbl">فعالیت‌های بحرانی</div><div class="val">7</div><div class="sub">از مجموع 9 فعالیت</div></div>
+    <div class="stat"><div class="lbl">بافر تا Deadline</div><div class="val">1 ماه</div><div class="sub">سپتامبر تا ژانویه</div></div>
+  </div>
+
+  <h2 class="section"><span class="num">3.2</span> وظیفه اول — محاسبه دستی PDM</h2>
+  <p>
+    در گام نخست، شبکه فعالیت‌ها بر اساس وابستگی‌های تعریف‌شده در صورت پروژه ساخته می‌شود. واحد زمانی «ماه» در نظر گرفته شده و
+    مبدا زمان (<span class="formula">t = 0</span>) معادل آوریل ۲۰۲۶ است.
+    تمامی روابط از نوع <em>Finish-to-Start</em> با Lag صفر فرض شده‌اند.
+  </p>
+
+  <table class="data">
+    <thead>
+      <tr>
+        <th style="width:6%">No.</th>
+        <th style="width:34%">فعالیت</th>
+        <th style="width:14%">مدت (ماه)</th>
+        <th style="width:46%">پیش‌نیاز</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>1</td><td class="left">Software Development</td><td>3</td><td class="left">—</td></tr>
+      <tr><td>2</td><td class="left">Software Integration</td><td>1</td><td class="left">پس از 1</td></tr>
+      <tr><td>3</td><td class="left">UI/UX Design</td><td>2</td><td class="left">—</td></tr>
+      <tr><td>4</td><td class="left">Cross-Platform α Test</td><td>1</td><td class="left">پس از 2 و 3</td></tr>
+      <tr><td>5</td><td class="left">Implementing α Test Feedback</td><td>1</td><td class="left">پس از 4</td></tr>
+      <tr><td>6</td><td class="left">Selected-User β Test</td><td>1</td><td class="left">پس از 5</td></tr>
+      <tr><td>7</td><td class="left">Developing Final Application Package</td><td>2</td><td class="left">پس از 6</td></tr>
+      <tr><td>8</td><td class="left">Application Marketing before Launch</td><td>1</td><td class="left">پس از 6</td></tr>
+      <tr><td>9</td><td class="left">Final Application Launch <span class="badge">Milestone</span></td><td>0</td><td class="left">پس از 7 و 8</td></tr>
+    </tbody>
+  </table>
+
+  <h3 class="sub">روش محاسبه (CPM در یک نگاه)</h3>
+  <div class="two-col">
+    <div class="callout">
+      <strong>گذر رو به جلو</strong> — Forward Pass:<br>
+      <span class="formula">ES<sub>j</sub> = max{ EF<sub>i</sub> }</span> ·
+      <span class="formula">EF<sub>j</sub> = ES<sub>j</sub> + D<sub>j</sub></span>
+    </div>
+    <div class="callout terra">
+      <strong>گذر رو به عقب</strong> — Backward Pass:<br>
+      <span class="formula">LF<sub>i</sub> = min{ LS<sub>j</sub> }</span> ·
+      <span class="formula">LS<sub>i</sub> = LF<sub>i</sub> − D<sub>i</sub></span>
+    </div>
+  </div>
+  <div class="callout" style="margin-top:6px;">
+    <strong>شناوری:</strong>
+    <span class="formula">TS = LS − ES = LF − EF</span> ·
+    <span class="formula">FS = min{ ES<sub>j</sub> } − EF<sub>i</sub></span> —
+    فعالیت‌های با <span class="formula">TS = 0</span> روی <strong>مسیر بحرانی</strong> قرار می‌گیرند.
+  </div>
+
+  <div class="pfoot">
+    <span>گزارش پروژه · مدیریت Slack</span>
+    <span class="right">صفحه ۱ از ۳</span>
+  </div>
+</section>
+
+<!-- ============ PAGE 2 — DIAGRAM + TABLE ============ -->
+<section class="page">
+  <h2 class="section"><span class="num">3.2</span> شبکه PDM و جدول محاسبات</h2>
+
+  <p>
+    نمودار زیر شبکه فعالیت‌ها را به‌صورت <em>Activity-on-Node</em> نشان می‌دهد. هر گره شامل
+    <span class="formula">ES | EF</span> در بالا، نام و مدت در میانه، و
+    <span class="formula">LS | LF</span> در پایین است. مقادیر TS و FS نیز ذیل هر گره ثبت شده‌اند.
+    مسیر بحرانی با رنگ قرمز پررنگ مشخص شده است.
+  </p>
+
+  <div class="pdm-wrap">
+    <svg class="pdm-svg" viewBox="0 0 1180 540" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="#3a4655"/>
+        </marker>
+        <marker id="arrowCrit" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="#b8392a"/>
+        </marker>
+        <style>
+          .node{ fill:#ffffff; stroke:#1a2332; stroke-width:1.6; }
+          .node.crit{ stroke:#b8392a; stroke-width:2.4; fill:#fdf6f4; }
+          .node.slk{ stroke:#b8924a; stroke-width:2; fill:#fcf8ec; }
+          .nlbl{ font-family:'Vazirmatn',sans-serif; font-size:11px; fill:#1a2332; }
+          .nlbl.name{ font-weight:700; font-size:12px; }
+          .nlbl.name.crit{ fill:#b8392a; }
+          .nlbl.t{ font-family:'JetBrains Mono',monospace; font-size:11px; fill:#3a4655; }
+          .nlbl.t.crit{ fill:#b8392a; font-weight:700; }
+          .nlbl.id{ font-family:'JetBrains Mono',monospace; font-size:10px; fill:#7a8593; }
+          .slkbar{ font-family:'JetBrains Mono',monospace; font-size:10px; fill:#3a4655; }
+          .edge{ stroke:#3a4655; stroke-width:1.4; fill:none; }
+          .edge.crit{ stroke:#b8392a; stroke-width:2.4; }
+          .divider{ stroke:#1a2332; stroke-width:1; }
+          .divider.crit{ stroke:#b8392a; }
+          .ax{ stroke:#cfc6ad; stroke-width:1; stroke-dasharray:3,3; }
+          .axlbl{ font-family:'JetBrains Mono',monospace; font-size:10px; fill:#7a8593; }
+        </style>
+      </defs>
+
+      <!-- Time axis (top) -->
+      <g>
+        <line class="ax" x1="40" y1="40" x2="1140" y2="40"/>
+        <text class="axlbl" x="40" y="30">t=0 · Apr 2026</text>
+        <text class="axlbl" x="1140" y="30" text-anchor="end">t=9 · Jan 2027</text>
+      </g>
+
+      <!-- Helper: positions
+        Each node: width 140, height 90
+        Column x:
+          C1 (t=0..3)  : x=60
+          C2 (t=3..4)  : x=240
+          C3 (t=4..5)  : x=400
+          C4 (t=5..6)  : x=560
+          C5 (t=6..7)  : x=720
+          C6 (t=7..9)  : x=880
+          C7 (t=9..9)  : x=1040
+        Row y: top=110, mid=240, bot=370
+      -->
+
+      <!-- ===== Activity 1: SW Dev (CRITICAL) ===== -->
+      <g transform="translate(60,110)">
+        <rect class="node crit" width="140" height="90" rx="4"/>
+        <line class="divider crit" x1="0" y1="30" x2="140" y2="30"/>
+        <line class="divider crit" x1="0" y1="60" x2="140" y2="60"/>
+        <line class="divider crit" x1="70" y1="0"  x2="70"  y2="30"/>
+        <line class="divider crit" x1="70" y1="60" x2="70"  y2="90"/>
+        <text class="nlbl t crit" x="35" y="20" text-anchor="middle">0</text>
+        <text class="nlbl t crit" x="105" y="20" text-anchor="middle">3</text>
+        <text class="nlbl name crit" x="70" y="47" text-anchor="middle">Software Dev</text>
+        <text class="nlbl id" x="70" y="58" text-anchor="middle">#1 · 3m</text>
+        <text class="nlbl t crit" x="35" y="80" text-anchor="middle">0</text>
+        <text class="nlbl t crit" x="105" y="80" text-anchor="middle">3</text>
+        <text class="slkbar" x="70" y="108" text-anchor="middle" fill="#b8392a" font-weight="700">TS=0 · FS=0</text>
+      </g>
+
+      <!-- ===== Activity 3: UI/UX (SLACK) ===== -->
+      <g transform="translate(60,370)">
+        <rect class="node slk" width="140" height="90" rx="4"/>
+        <line class="divider" x1="0" y1="30" x2="140" y2="30"/>
+        <line class="divider" x1="0" y1="60" x2="140" y2="60"/>
+        <line class="divider" x1="70" y1="0"  x2="70"  y2="30"/>
+        <line class="divider" x1="70" y1="60" x2="70"  y2="90"/>
+        <text class="nlbl t" x="35" y="20" text-anchor="middle">0</text>
+        <text class="nlbl t" x="105" y="20" text-anchor="middle">2</text>
+        <text class="nlbl name" x="70" y="47" text-anchor="middle">UI/UX Design</text>
+        <text class="nlbl id" x="70" y="58" text-anchor="middle">#3 · 2m</text>
+        <text class="nlbl t" x="35" y="80" text-anchor="middle">2</text>
+        <text class="nlbl t" x="105" y="80" text-anchor="middle">4</text>
+        <text class="slkbar" x="70" y="108" text-anchor="middle" fill="#b8924a" font-weight="700">TS=2 · FS=2</text>
+      </g>
+
+      <!-- ===== Activity 2: SW Integration (CRITICAL) ===== -->
+      <g transform="translate(240,110)">
+        <rect class="node crit" width="140" height="90" rx="4"/>
+        <line class="divider crit" x1="0" y1="30" x2="140" y2="30"/>
+        <line class="divider crit" x1="0" y1="60" x2="140" y2="60"/>
+        <line class="divider crit" x1="70" y1="0"  x2="70"  y2="30"/>
+        <line class="divider crit" x1="70" y1="60" x2="70"  y2="90"/>
+        <text class="nlbl t crit" x="35" y="20" text-anchor="middle">3</text>
+        <text class="nlbl t crit" x="105" y="20" text-anchor="middle">4</text>
+        <text class="nlbl name crit" x="70" y="47" text-anchor="middle">SW Integration</text>
+        <text class="nlbl id" x="70" y="58" text-anchor="middle">#2 · 1m</text>
+        <text class="nlbl t crit" x="35" y="80" text-anchor="middle">3</text>
+        <text class="nlbl t crit" x="105" y="80" text-anchor="middle">4</text>
+        <text class="slkbar" x="70" y="108" text-anchor="middle" fill="#b8392a" font-weight="700">TS=0 · FS=0</text>
+      </g>
+
+      <!-- ===== Activity 4: Cross-Platform α test (CRITICAL) ===== -->
+      <g transform="translate(400,240)">
+        <rect class="node crit" width="140" height="90" rx="4"/>
+        <line class="divider crit" x1="0" y1="30" x2="140" y2="30"/>
+        <line class="divider crit" x1="0" y1="60" x2="140" y2="60"/>
+        <line class="divider crit" x1="70" y1="0"  x2="70"  y2="30"/>
+        <line class="divider crit" x1="70" y1="60" x2="70"  y2="90"/>
+        <text class="nlbl t crit" x="35" y="20" text-anchor="middle">4</text>
+        <text class="nlbl t crit" x="105" y="20" text-anchor="middle">5</text>
+        <text class="nlbl name crit" x="70" y="47" text-anchor="middle">α Cross-Test</text>
+        <text class="nlbl id" x="70" y="58" text-anchor="middle">#4 · 1m</text>
+        <text class="nlbl t crit" x="35" y="80" text-anchor="middle">4</text>
+        <text class="nlbl t crit" x="105" y="80" text-anchor="middle">5</text>
+        <text class="slkbar" x="70" y="108" text-anchor="middle" fill="#b8392a" font-weight="700">TS=0 · FS=0</text>
+      </g>
+
+      <!-- ===== Activity 5: α feedback ===== -->
+      <g transform="translate(560,240)">
+        <rect class="node crit" width="140" height="90" rx="4"/>
+        <line class="divider crit" x1="0" y1="30" x2="140" y2="30"/>
+        <line class="divider crit" x1="0" y1="60" x2="140" y2="60"/>
+        <line class="divider crit" x1="70" y1="0"  x2="70"  y2="30"/>
+        <line class="divider crit" x1="70" y1="60" x2="70"  y2="90"/>
+        <text class="nlbl t crit" x="35" y="20" text-anchor="middle">5</text>
+        <text class="nlbl t crit" x="105" y="20" text-anchor="middle">6</text>
+        <text class="nlbl name crit" x="70" y="47" text-anchor="middle">α Feedback</text>
+        <text class="nlbl id" x="70" y="58" text-anchor="middle">#5 · 1m</text>
+        <text class="nlbl t crit" x="35" y="80" text-anchor="middle">5</text>
+        <text class="nlbl t crit" x="105" y="80" text-anchor="middle">6</text>
+        <text class="slkbar" x="70" y="108" text-anchor="middle" fill="#b8392a" font-weight="700">TS=0 · FS=0</text>
+      </g>
+
+      <!-- ===== Activity 6: β test ===== -->
+      <g transform="translate(720,240)">
+        <rect class="node crit" width="140" height="90" rx="4"/>
+        <line class="divider crit" x1="0" y1="30" x2="140" y2="30"/>
+        <line class="divider crit" x1="0" y1="60" x2="140" y2="60"/>
+        <line class="divider crit" x1="70" y1="0"  x2="70"  y2="30"/>
+        <line class="divider crit" x1="70" y1="60" x2="70"  y2="90"/>
+        <text class="nlbl t crit" x="35" y="20" text-anchor="middle">6</text>
+        <text class="nlbl t crit" x="105" y="20" text-anchor="middle">7</text>
+        <text class="nlbl name crit" x="70" y="47" text-anchor="middle">β Test</text>
+        <text class="nlbl id" x="70" y="58" text-anchor="middle">#6 · 1m</text>
+        <text class="nlbl t crit" x="35" y="80" text-anchor="middle">6</text>
+        <text class="nlbl t crit" x="105" y="80" text-anchor="middle">7</text>
+        <text class="slkbar" x="70" y="108" text-anchor="middle" fill="#b8392a" font-weight="700">TS=0 · FS=0</text>
+      </g>
+
+      <!-- ===== Activity 7: Final Package (CRITICAL) ===== -->
+      <g transform="translate(880,110)">
+        <rect class="node crit" width="140" height="90" rx="4"/>
+        <line class="divider crit" x1="0" y1="30" x2="140" y2="30"/>
+        <line class="divider crit" x1="0" y1="60" x2="140" y2="60"/>
+        <line class="divider crit" x1="70" y1="0"  x2="70"  y2="30"/>
+        <line class="divider crit" x1="70" y1="60" x2="70"  y2="90"/>
+        <text class="nlbl t crit" x="35" y="20" text-anchor="middle">7</text>
+        <text class="nlbl t crit" x="105" y="20" text-anchor="middle">9</text>
+        <text class="nlbl name crit" x="70" y="47" text-anchor="middle">Final Package</text>
+        <text class="nlbl id" x="70" y="58" text-anchor="middle">#7 · 2m</text>
+        <text class="nlbl t crit" x="35" y="80" text-anchor="middle">7</text>
+        <text class="nlbl t crit" x="105" y="80" text-anchor="middle">9</text>
+        <text class="slkbar" x="70" y="108" text-anchor="middle" fill="#b8392a" font-weight="700">TS=0 · FS=0</text>
+      </g>
+
+      <!-- ===== Activity 8: Marketing (SLACK) ===== -->
+      <g transform="translate(880,370)">
+        <rect class="node slk" width="140" height="90" rx="4"/>
+        <line class="divider" x1="0" y1="30" x2="140" y2="30"/>
+        <line class="divider" x1="0" y1="60" x2="140" y2="60"/>
+        <line class="divider" x1="70" y1="0"  x2="70"  y2="30"/>
+        <line class="divider" x1="70" y1="60" x2="70"  y2="90"/>
+        <text class="nlbl t" x="35" y="20" text-anchor="middle">7</text>
+        <text class="nlbl t" x="105" y="20" text-anchor="middle">8</text>
+        <text class="nlbl name" x="70" y="47" text-anchor="middle">Marketing</text>
+        <text class="nlbl id" x="70" y="58" text-anchor="middle">#8 · 1m</text>
+        <text class="nlbl t" x="35" y="80" text-anchor="middle">8</text>
+        <text class="nlbl t" x="105" y="80" text-anchor="middle">9</text>
+        <text class="slkbar" x="70" y="108" text-anchor="middle" fill="#b8924a" font-weight="700">TS=1 · FS=1</text>
+      </g>
+
+      <!-- ===== Activity 9: Launch milestone ===== -->
+      <g transform="translate(1040,240)">
+        <rect class="node crit" width="100" height="90" rx="4"/>
+        <line class="divider crit" x1="0" y1="30" x2="100" y2="30"/>
+        <line class="divider crit" x1="0" y1="60" x2="100" y2="60"/>
+        <line class="divider crit" x1="50" y1="0"  x2="50"  y2="30"/>
+        <line class="divider crit" x1="50" y1="60" x2="50"  y2="90"/>
+        <text class="nlbl t crit" x="25" y="20" text-anchor="middle">9</text>
+        <text class="nlbl t crit" x="75" y="20" text-anchor="middle">9</text>
+        <text class="nlbl name crit" x="50" y="47" text-anchor="middle">Launch</text>
+        <text class="nlbl id" x="50" y="58" text-anchor="middle">#9 · 0m</text>
+        <text class="nlbl t crit" x="25" y="80" text-anchor="middle">9</text>
+        <text class="nlbl t crit" x="75" y="80" text-anchor="middle">9</text>
+        <text class="slkbar" x="50" y="108" text-anchor="middle" fill="#b8392a" font-weight="700">Milestone</text>
+      </g>
+
+      <!-- ===== EDGES =====
+        Connection points:
+          right of node: (x+W, y+H/2)  [for source]
+          left of node : (x, y+H/2)    [for target]
+        Node H/2 = 45
+      -->
+
+      <!-- 1 → 2 (critical) -->
+      <path class="edge crit" d="M200,155 L240,155" marker-end="url(#arrowCrit)"/>
+      <!-- 2 → 4 (critical) -->
+      <path class="edge crit" d="M380,155 C390,155 390,285 400,285" marker-end="url(#arrowCrit)"/>
+      <!-- 3 → 4 (normal, slack path) -->
+      <path class="edge" d="M200,415 C300,415 300,285 400,285" marker-end="url(#arrow)"/>
+      <!-- 4 → 5 (critical) -->
+      <path class="edge crit" d="M540,285 L560,285" marker-end="url(#arrowCrit)"/>
+      <!-- 5 → 6 (critical) -->
+      <path class="edge crit" d="M700,285 L720,285" marker-end="url(#arrowCrit)"/>
+      <!-- 6 → 7 (critical) -->
+      <path class="edge crit" d="M860,285 C870,285 870,155 880,155" marker-end="url(#arrowCrit)"/>
+      <!-- 6 → 8 (slack) -->
+      <path class="edge" d="M860,285 C870,285 870,415 880,415" marker-end="url(#arrow)"/>
+      <!-- 7 → 9 (critical) -->
+      <path class="edge crit" d="M1020,155 C1030,155 1030,285 1040,285" marker-end="url(#arrowCrit)"/>
+      <!-- 8 → 9 (slack) -->
+      <path class="edge" d="M1020,415 C1030,415 1030,285 1040,285" marker-end="url(#arrow)"/>
+
+    </svg>
+    <div class="pdm-key">
+      <span style="display:inline-block;width:14px;height:3px;background:#b8392a;"></span>
+      <span>Critical Path · مسیر بحرانی</span>
+      <span style="display:inline-block;width:14px;height:3px;background:#3a4655;margin-right:14px;"></span>
+      <span>وابستگی عادی (دارای شناوری)</span>
+      <span style="margin-right:14px;">قاب قرمز = فعالیت بحرانی · قاب طلایی = فعالیت دارای Slack</span>
+    </div>
+  </div>
+
+  <h3 class="sub">جدول جامع مقادیر محاسبه‌شده دستی</h3>
+  <table class="data">
+    <thead>
+      <tr>
+        <th>#</th><th>فعالیت</th><th>Dur</th>
+        <th>ES</th><th>EF</th><th>LS</th><th>LF</th>
+        <th>TS</th><th>FS</th><th>وضعیت</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="crit"><td>1</td><td class="left">Software Development</td><td>3</td><td>0</td><td>3</td><td>0</td><td>3</td><td>0</td><td>0</td><td>Critical</td></tr>
+      <tr class="crit"><td>2</td><td class="left">Software Integration</td><td>1</td><td>3</td><td>4</td><td>3</td><td>4</td><td>0</td><td>0</td><td>Critical</td></tr>
+      <tr class="slk"><td>3</td><td class="left">UI/UX Design</td><td>2</td><td>0</td><td>2</td><td>2</td><td>4</td><td>2</td><td>2</td><td>Slack</td></tr>
+      <tr class="crit"><td>4</td><td class="left">Cross-Platform α Test</td><td>1</td><td>4</td><td>5</td><td>4</td><td>5</td><td>0</td><td>0</td><td>Critical</td></tr>
+      <tr class="crit"><td>5</td><td class="left">Implementing α Feedback</td><td>1</td><td>5</td><td>6</td><td>5</td><td>6</td><td>0</td><td>0</td><td>Critical</td></tr>
+      <tr class="crit"><td>6</td><td class="left">Selected-User β Test</td><td>1</td><td>6</td><td>7</td><td>6</td><td>7</td><td>0</td><td>0</td><td>Critical</td></tr>
+      <tr class="crit"><td>7</td><td class="left">Final Application Package</td><td>2</td><td>7</td><td>9</td><td>7</td><td>9</td><td>0</td><td>0</td><td>Critical</td></tr>
+      <tr class="slk"><td>8</td><td class="left">Application Marketing</td><td>1</td><td>7</td><td>8</td><td>8</td><td>9</td><td>1</td><td>1</td><td>Slack</td></tr>
+      <tr class="crit"><td>9</td><td class="left">Final Application Launch</td><td>0</td><td>9</td><td>9</td><td>9</td><td>9</td><td>0</td><td>0</td><td>Milestone</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <strong>مسیر بحرانی:</strong>
+    <span class="formula">1 → 2 → 4 → 5 → 6 → 7 → 9</span>
+    با طول کل ۹ ماه. این مسیر کوتاه‌ترین زمان ممکن برای پایان پروژه را تعیین می‌کند و هرگونه تأخیر در فعالیت‌های آن مستقیماً موعد تحویل را به عقب می‌اندازد.
+  </div>
+
+  <div class="pfoot">
+    <span>گزارش پروژه · مدیریت Slack</span>
+    <span class="right">صفحه ۲ از ۳</span>
+  </div>
+</section>
+
+<!-- ============ PAGE 3 — TASK 2 (MS Project) + INTERPRETATION ============ -->
+<section class="page">
+  <h2 class="section"><span class="num">3.3</span> وظیفه دوم — اعتبارسنجی با MS Project</h2>
+  <p>
+    در گام دوم، همان شبکه فعالیت‌ها در نرم‌افزار <span class="formula">MS Project</span> وارد شده و مقادیر
+    <span class="formula">Free Slack</span> و <span class="formula">Total Slack</span> با استفاده از نمای
+    <span class="formula">Detail Gantt</span> یا ستون‌های افزوده در <span class="formula">Schedule Table</span> استخراج گردیده است.
+    تنظیمات کلیدی استفاده‌شده:
+  </p>
+  <ol class="steps" style="margin:4px 0;">
+    <li><strong>Project Start Date</strong> = <span class="formula">2026-04-01</span> · <strong>Schedule from Project Start</strong>.</li>
+    <li><strong>تقویم ۲۴×۷</strong> تعریف شد تا ماه‌ها منطبق با محاسبه دستی باشند.</li>
+    <li><strong>Task Mode = Auto Scheduled</strong> و وابستگی‌ها از نوع <span class="formula">FS</span> با <span class="formula">Lag = 0</span>.</li>
+    <li>ستون‌های Free Slack و Total Slack از طریق Insert Column افزوده شد.</li>
+  </ol>
+
+  <h3 class="sub">مقادیر استخراج‌شده از نرم‌افزار (مطابق دستی)</h3>
+  <table class="data">
+    <thead>
+      <tr>
+        <th>#</th><th>فعالیت</th>
+        <th>Start (MSP)</th><th>Finish (MSP)</th>
+        <th>Free Slack</th><th>Total Slack</th>
+        <th>Critical?</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="crit"><td>1</td><td class="left">Software Development</td><td>Apr 1 · 2026</td><td>Jul 1 · 2026</td><td>0 mo</td><td>0 mo</td><td>Yes</td></tr>
+      <tr class="crit"><td>2</td><td class="left">Software Integration</td><td>Jul 1 · 2026</td><td>Aug 1 · 2026</td><td>0 mo</td><td>0 mo</td><td>Yes</td></tr>
+      <tr class="slk"><td>3</td><td class="left">UI/UX Design</td><td>Apr 1 · 2026</td><td>Jun 1 · 2026</td><td>2 mo</td><td>2 mo</td><td>No</td></tr>
+      <tr class="crit"><td>4</td><td class="left">Cross-Platform α Test</td><td>Aug 1 · 2026</td><td>Sep 1 · 2026</td><td>0 mo</td><td>0 mo</td><td>Yes</td></tr>
+      <tr class="crit"><td>5</td><td class="left">Implementing α Feedback</td><td>Sep 1 · 2026</td><td>Oct 1 · 2026</td><td>0 mo</td><td>0 mo</td><td>Yes</td></tr>
+      <tr class="crit"><td>6</td><td class="left">Selected-User β Test</td><td>Oct 1 · 2026</td><td>Nov 1 · 2026</td><td>0 mo</td><td>0 mo</td><td>Yes</td></tr>
+      <tr class="crit"><td>7</td><td class="left">Final Application Package</td><td>Nov 1 · 2026</td><td>Jan 1 · 2027</td><td>0 mo</td><td>0 mo</td><td>Yes</td></tr>
+      <tr class="slk"><td>8</td><td class="left">Application Marketing</td><td>Nov 1 · 2026</td><td>Dec 1 · 2026</td><td>1 mo</td><td>1 mo</td><td>No</td></tr>
+      <tr class="crit"><td>9</td><td class="left">Final Application Launch</td><td>Jan 1 · 2027</td><td>Jan 1 · 2027</td><td>0 mo</td><td>0 mo</td><td>Yes</td></tr>
+    </tbody>
+  </table>
+  <p style="font-size:9pt;color:var(--muted);margin-top:2px;">
+    * تصاویر اسکرین‌شات Gantt و Network Diagram خروجی نرم‌افزار به‌صورت ضمیمه در فایل <span class="formula">.mpp</span> ارائه شده است.
+  </p>
+
+  <h2 class="section"><span class="num">3.3.b</span> تفسیر و مقایسه نتایج</h2>
+  <p class="lead" style="margin:4px 0;">
+    مقادیر دستی و خروجی نرم‌افزار <strong>کاملاً منطبق</strong> هستند.
+  </p>
+
+  <div class="two-col">
+    <div class="callout">
+      <strong>چرا اعداد یکسان شدند؟</strong>
+      هر دو روش از یک الگوریتم (Forward/Backward pass در CPM) استفاده می‌کنند. وقتی تمام روابط FS با Lag صفر، تقویم ۲۴×۷ و واحد ماه ≡ ۳۰ روز یکسان باشد، خروجی نرم‌افزار عیناً برابر محاسبه دستی است.
+    </div>
+    <div class="callout terra">
+      <strong>منابع اختلاف بالقوه (که اینجا رخ نداده‌اند):</strong>
+      ۱) تقویم کاری متفاوت (تعطیلی جمعه‌ها) ۲) Schedule from Project Finish به‌جای Start ۳) ثبت Deadline در فعالیت پایانی که LF و در نتیجه TS را تغییر می‌دهد.
+    </div>
+  </div>
+
+  <h3 class="sub">تحلیل شناوری در سطح فعالیت</h3>
+  <ul style="margin-right:14px;font-size:8.8pt;color:var(--ink-soft);line-height:1.5;">
+    <li>
+      <strong style="color:var(--teal);">UI/UX Design (#3) — TS = FS = ۲ ماه:</strong>
+      پشت شاخه موازی غیربحرانی است. تیم طراحی می‌تواند تا ۲ ماه دیرتر آغاز کند بدون اثر بر تحویل. چون <span class="formula">FS = TS</span>، شناوری خصوصی است و مصرف آن، <em>α Cross-Test</em> را به تأخیر نمی‌اندازد.
+    </li>
+    <li>
+      <strong style="color:var(--slack);">Marketing (#8) — TS = FS = ۱ ماه:</strong>
+      موازی <em>Final Package</em>. می‌توان تا ۱ ماه با تأخیر آغاز کرد. چون پس‌نیاز (#۹) با پایان همزمان #۷ و #۸ شروع می‌شود، شناوری آزاد و کل برابر است.
+    </li>
+    <li>
+      <strong style="color:var(--critical);">۷ فعالیت بحرانی باقی‌مانده — TS = FS = 0:</strong>
+      بافری ندارند. هر تأخیر مستقیماً تحویل را عقب می‌اندازد. <em>Crashing buffer</em> و بازبینی هفتگی پیشرفت توصیه می‌شود.
+    </li>
+  </ul>
+
+  <div class="callout warn" style="margin-top:6px;">
+    <strong>جمع‌بندی برای ذی‌نفع:</strong> پروژه با طول ۹ ماه در پنجره ۱۰ ماهه (Apr 2026 → Jan 2027) تحویل می‌شود؛ <strong>۱ ماه بافر</strong> سطح-پروژه باقی است که باید پس از <em>Final Package</em> محافظت شود. تمرکز ریسک: شاخه توسعه (#۱) و فاز <em>α/β Test</em>.
+  </div>
+
+  <p style="font-size:7.5pt;color:var(--muted);margin-top:4px;">
+    منابع: MSProject Help · PMBOK 7th ed. · Kerzner — Project Management.
+  </p>
+
+  <div class="pfoot">
+    <span>گزارش پروژه · مدیریت Slack</span>
+    <span class="right">صفحه ۳ از ۳</span>
+  </div>
+</section>
+
+</body>
+</html>
